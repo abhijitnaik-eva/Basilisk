@@ -4,7 +4,21 @@ import { spawnFruit, checkFruitCollision } from './Fruit';
 
 const boardLimit = 10;
 let score = 0;
+let gameOver = false;
+
+
 const scoreElement = document.getElementById('scoreValue');
+
+const restartModal = document.getElementById('restartModal');
+const restartButton = document.getElementById('restartButton');
+
+function showRestartModal() {
+  restartModal.classList.remove('hidden');
+}
+
+function hideRestartModal() {
+  restartModal.classList.add('hidden');
+}
 
 let snake = [
   { x: 0, z: 0 }
@@ -35,21 +49,22 @@ function createSegment(x, z) {
   snakeMeshes.push(mesh);
 }
 export function playerMovement(keys) {
-  if (keys['w'] && direction.z !== 1) {
+  if (keys['w'] || keys['ArrowUp'] && direction.z !== 1) {
     direction = { x: 0, z: -1 };
   }
-  else if (keys['s'] && direction.z !== -1) {
+  else if (keys['s'] || keys['ArrowDown'] && direction.z !== -1) {
     direction = { x: 0, z: 1 };
   }
-  else if (keys['a'] && direction.x !== 1) {
+  else if (keys['a'] || keys['ArrowLeft'] && direction.x !== 1) {
     direction = { x: -1, z: 0 };
   }
-  else if (keys['d'] && direction.x !== -1) {
+  else if (keys['d'] || keys['ArrowRight']&& direction.x !== -1) {
     direction = { x: 1, z: 0 };
   }
 }
 
 export function moveSnake() {
+  if (gameOver) return;
   const head = snake[0];
   const newHead = {
     x: head.x + direction.x,
@@ -66,11 +81,12 @@ export function moveSnake() {
     snake.pop();
   }
 
-  if (checkWallCollision(newHead)) {
-    console.log('Wall Collision');
+  checkWallCollision(newHead);
+  if (checkSelfCollision()) {
+    gameOver = true;
+    showRestartModal();
     return;
   }
-  if (checkSelfCollision()) console.log('dead');
 
   updateMeshes();
 }
@@ -99,9 +115,25 @@ function checkSelfCollision() {
 
   return false;
 }
+
 function checkWallCollision(position) {
-  if (position.x > boardLimit || position.x < -boardLimit ||position.z > boardLimit ||position.z < -boardLimit)
-    return true;
-else
-    return false;
+  if (position.x > boardLimit) position.x = -boardLimit;
+  if (position.x < -boardLimit) position.x = boardLimit;
+  if (position.z > boardLimit) position.z = -boardLimit;
+  if (position.z < -boardLimit) position.z = boardLimit;
 }
+
+function restartGame() {
+  snakeMeshes.forEach(mesh => scene.remove(mesh));
+  snake = [{ x: 0, z: 0 }];
+  snakeMeshes = [];
+  direction = { x: 1, z: 0 };
+  score = 0;
+  scoreElement.textContent = score;
+  gameOver = false;
+  createSegment(0, 0);
+  spawnFruit();
+  hideRestartModal();
+}
+
+restartButton.addEventListener('click', restartGame);

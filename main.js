@@ -6,12 +6,13 @@ import './Core/Lights';
 import { controls } from './Controls/OrbitControls';
 import { renderer } from './Core/Renderer';
 import { moveSnake, playerMovement } from './Objects/Player';
+import { rotateFruit } from './Objects/Fruit';
 
 const keys = {};
 window.addEventListener('keydown', (e) => (keys[e.key] = true));
 window.addEventListener('keyup', (e) => (keys[e.key] = false));
 
-let moveInterval = 200; //millisec
+let moveInterval = 300; //millisec
 let lastMoveTime = 0;
 
 let gameStarted = false;
@@ -32,6 +33,7 @@ function animate(time) {
       lastMoveTime = time;
     }
   }
+  rotateFruit();
 
   changeCamera(keys);
   playerMovement(keys);
