@@ -8,18 +8,56 @@
 </head>
 
 <body class="m-0 overflow-hidden bg-black">
-  
 
-  <div class="absolute left-20 top-4 bg-black text-white rounded-lg py-2 px-4 font-semibold">WASD - to move</div>
+
+  <div class="absolute left-10 top-5 bg-white text-black shadow-2xl rounded-lg py-4 px-4 font-semibold z-10">
+    <p class="border-b border-gray pb-2 mb-2">Movement:</p>
+    <p>W / Up Arrow - <span class="text-orange-500">Move Forward</span></p>
+    <p>S / Down Arrow - <span class="text-orange-500">Move Backward</span></p>
+    <p>A / Left Arrow - <span class="text-orange-500">Move Left</span></p>
+    <p>D / Right Arrow - <span class="text-orange-500">Move Right</span></p>
+  </div>
+
+  <div class="absolute right-10 top-5 w-96 bg-white text-black shadow-2xl rounded-lg py-4 px-4 font-semibold z-10">
+    <p class="border-b border-gray pb-2 mb-2">Tutorial:</p>
+    <div class="flex items-center gap-4 mb-4">
+      <img src="./Images/player.png" alt="Step 1" class="w-12 h-12 object-cover rounded-md">
+      <div>
+        <h3 class="font-bold">Player</h3>
+        <p class="text-sm font-normal text-gray-600">
+          Player controlled with keys, touching youself causes loss.
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 mb-4">
+      <img src="./Images/fruit.png" alt="Step 1" class="w-12 h-12 object-cover rounded-md">
+      <div>
+        <h3 class="font-bold">Fruit</h3>
+        <p class="text-sm font-normal text-gray-600">
+          Eating fruits will increase your score by +1;
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 mb-4">
+      <img src="./Images/portal.png" alt="Step 1" class="w-12 h-12 object-cover rounded-md">
+      <div>
+        <h3 class="font-bold">Portal</h3>
+        <p class="text-sm font-normal text-gray-600">
+          Enter portal to exit through another portal. This can either help you or create challenges.
+        </p>
+      </div>
+    </div>
+  </div>
 
   <div id="scoreBoard"
     class="absolute top-4 left-1/2 -translate-x-1/2 px-6 py-2 rounded-xl bg-black text-white text-xl font-semibold shadow-lg">
     Score: <span id="scoreValue">0</span>
   </div>
 
-  <div id="startScreen" class="absolute inset-0 z-10 flex items-center justify-center bg-black/80">
+
+  <div id="startScreen" class="absolute inset-0 z-5 flex items-center justify-center bg-black/80">
     <div class="text-center space-y-6">
-      <h1 class="text-4xl font-bold text-white tracking-wide">
+      <h1 class="text-6xl font-bold text-white tracking-wide mb-72 bg-black">
         Basilisk
       </h1>
       <button id="startBtn"
@@ -29,67 +67,18 @@
     </div>
   </div>
 
-  <div id="storyModal"
-    class="fixed inset-0 bg-black text-white z-20 flex items-center justify-center p-8 transition-opacity duration-700 opacity-100">
-    <div class="max-w-3xl text-center space-y-6">
-      <p id="storyText" class="text-2xl md:text-4xl text-white font-semibold leading-relaxed"></p>
-      <button id="nextStoryBtn"
-        class="px-6 py-2 bg-green-500 rounded-lg shadow-lg text-lg font-semibold hover:bg-green-600 transition-all duration-200 hover:scale-105 active:scale-95">
-        Next
+  <div id="restartModal"
+    class="fixed inset-0 hidden items-center justify-center bg-black/70 z-50 flex justify-center items-center">
+    <div class="bg-white w-64 h-40 rounded-xl flex flex-col items-center justify-center space-y-4 shadow-2xl">
+      <h2 class="text-xl font-bold text-gray-800">Game Over</h2>
+      <score>Score : <span id="score">0</span></score>
+      <button id="restartButton" class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+        Restart
       </button>
     </div>
   </div>
 
-  <div id="restartModal"
-     class="fixed inset-0 hidden items-center justify-center bg-black/70 z-50">
-    <div class="bg-white w-64 h-40 rounded-xl flex flex-col items-center justify-center space-y-4 shadow-2xl">
-      <h2 class="text-xl font-bold text-gray-800">Game Over</h2>
-      <button id="restartButton"
-        class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
-        Restart
-      </button>
-    </div>
-</div>
-
   <script type="module" src="/main.js"></script>
-  <script>
-    const storyLines = [
-      "In a world where snakes rule the shadows...",
-      "xyz"
-    ];
-
-    let currentLine = 0;
-
-    const storyModal = document.getElementById('storyModal');
-    const storyText = document.getElementById('storyText');
-    const nextBtn = document.getElementById('nextStoryBtn');
-
-    function showStoryLine(index) {
-      storyText.textContent = storyLines[index];
-      storyModal.classList.remove('opacity-0'); 
-      storyModal.classList.add('opacity-100');
-    }
-
-    function hideStoryModal(callback) {
-      storyModal.classList.remove('opacity-100');
-      storyModal.classList.add('opacity-0');
-      setTimeout(() => {
-        storyModal.style.display = 'none';
-        if (callback) callback();
-      }, 700);
-    }
-
-    showStoryLine(currentLine);
-
-    nextBtn.addEventListener('click', () => {
-      currentLine++;
-      if (currentLine < storyLines.length) {
-        showStoryLine(currentLine);
-      } else {
-        hideStoryModal();
-      }
-    });
-  </script>
 </body>
 
 </html>

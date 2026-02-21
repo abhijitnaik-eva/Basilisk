@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { scene } from '../Core/Scene';
 import { renderer } from '../Core/Renderer';
 
-const gridBoundary = 20; 
+const gridBoundary = 18; 
 
 let fruit = null;
 let fruitPosition = { x: 0, z: 0 };
