@@ -9,7 +9,7 @@ perspectiveCamera.rotation.x = Math.PI/4;
 //#endregion
 
 //#region Orthographic Camera
-const width = 35, height = 35;
+const width = 25, height = 25;
 const aspect = window.innerWidth / window.innerHeight;
 const orthographicCamera = new THREE.OrthographicCamera(
     -width/2 * aspect, width/2 * aspect,

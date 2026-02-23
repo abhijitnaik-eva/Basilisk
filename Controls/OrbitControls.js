@@ -5,4 +5,6 @@ import { renderer } from '../Core/Renderer'
 
 export const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
+controls.enableRotate = false;
+
 controls.update();
