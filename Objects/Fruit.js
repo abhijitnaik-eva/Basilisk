@@ -6,21 +6,30 @@ const gridBoundary = 18;
 
 let fruit = null;
 let fruitPosition = { x: 0, z: 0 };
+let minCollisionDistance = 0.8;
 
 function createFruit(x, z) {
   const geometry = new THREE.OctahedronGeometry(0.5);
-  const material = new THREE.MeshBasicMaterial({ color: '#dd2c2c' });
+  const material = new THREE.MeshBasicMaterial({ color: '#f03333'});
   fruit = new THREE.Mesh(geometry, material);
-  fruit.material.opacity = 0.2 + Math.sin(performance.now() * 0.005) * 0.1;
+ 
+  const aura = new THREE.SphereGeometry(0.7);
+  const glow = new THREE.MeshBasicMaterial({color: 'red'})
   const fruitAura = new THREE.PointLight('#920101', 100, 5);
-  fruit.add(fruitAura);
+
+  const glowMesh = new THREE.Mesh(aura, glow);
+  glowMesh.material.transparent = true;
+  glowMesh.material.opacity = 0.2;
+
+  fruit.add(glowMesh);
+  //fruit.add(fruitAura);
 
   const edgeGeometry = new THREE.EdgesGeometry(geometry);
   const lineMaterial = new THREE.LineBasicMaterial({ color: 'black'});
   const outline = new THREE.LineSegments(edgeGeometry, lineMaterial);
   fruit.add(outline);
   fruit.castShadow = true
-  fruit.position.set(x, 1, z);
+  fruit.position.set(x, 0.6, z);
   scene.add(fruit);
 }
 
@@ -49,7 +58,7 @@ export function spawnFruit() {
 
 
 export function checkFruitCollision(snakeHead) {
-  if(snakeHead.x === fruitPosition.x && snakeHead.z === fruitPosition.z)
+  if(Math.abs(snakeHead.x - fruitPosition.x) < minCollisionDistance  && Math.abs(snakeHead.z - fruitPosition.z) < minCollisionDistance )
     return true;
     else
     return false;

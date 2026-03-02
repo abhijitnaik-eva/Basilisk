@@ -3,13 +3,12 @@ import { scene } from '../Core/Scene';
 import { spawnFruit, checkFruitCollision } from './Fruit';
 import { spawnPortals, handlePortalTeleport, updatePortalAnimation, removePortals } from './Portal';
 
-
 const boardLimit = 10;
 let score = 0;
 let gameOver = false;
 let tick = 0;
-export let snakeSpeed = 250;
-
+let dir = 1/20;  
+export let snakeSpeed = 1/20;
 
 const scoreElement = document.getElementById('scoreValue');
 const restartModal = document.getElementById('restartModal');
@@ -24,13 +23,13 @@ function hideRestartModal() {
   restartModal.classList.add('hidden');
 }
 
-let snake = [
-  { x: 0, z: 0 }
-];
+let snake = [];
 let snakeMeshes = [];
-let direction = { x: 1, z: 0 };
 
-createSegment(0, 0);
+initializeSnake();
+let direction = { x: dir, z: 0 };
+let rotation = { r: 0 };
+
 spawnFruit();
 spawnPortals(snake);
 
@@ -38,9 +37,13 @@ export function moveSnake() {
   tick++;
   if (gameOver) return;
   const head = snake[0];
+  let rotationVal = 0;
+  if (direction.x !== 0) rotationVal = 0;
+  else if (direction.z !== 0) rotationVal = Math.PI / 2;
   const newHead = {
     x: head.x + direction.x,
-    z: head.z + direction.z
+    z: head.z + direction.z,
+    r: rotationVal
   };
 
   checkWallCollision(newHead);
@@ -57,7 +60,6 @@ export function moveSnake() {
     snake.pop();
   }
 
-  
   if (checkSelfCollision()) {
     gameOver = true;
     showRestartModal();
@@ -66,44 +68,79 @@ export function moveSnake() {
   updateMeshes();
 }
 
-function updateSpeed(){
-  let speedFactor = 50;
-  if(score>10) speedFactor = 50;
-  if(score>25) speedFactor = 60;
-  if(score>50) speedFactor = 50;
+function updateSpeed() {
+  let speedFactor = 0;
+  if (score > 10) speedFactor = 1 / 15;
+  if (score > 25) speedFactor = 1 / 10;
+  if (score > 50) speedFactor = 1 / 5;
 
-  snakeSpeed+=speedFactor;
-}
-
-function createSegment(x, z) {
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const material = new THREE.MeshPhysicalMaterial({ color: 'white' });
-
-  const edgeGeometry = new THREE.EdgesGeometry(geometry);
-  const lineMaterial = new THREE.LineBasicMaterial({ color: 'black'});
-  const outline = new THREE.LineSegments(edgeGeometry, lineMaterial);
-
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.set(x, 0.5, z);
-  mesh.add(outline);
-  mesh.castShadow = true;
-
-  scene.add(mesh);
-  snakeMeshes.push(mesh);
+  snakeSpeed += speedFactor;
 }
 
 export function playerMovement(keys) {
-  if ((keys['w'] || keys['ArrowUp']) && direction.z !== 1) {
-    direction = { x: 0, z: -1 };
+  if ((keys['w'] || keys['ArrowUp']) && direction.z !== -dir) {
+    direction = { x: 0, z: -dir };
+    rotation = { r: Math.PI / 2 };
+  } else if ((keys['s'] || keys['ArrowDown']) && direction.z !== dir) {
+    direction = { x: 0, z: dir };
+    rotation = { r: Math.PI / 2 };
+  } else if ((keys['a'] || keys['ArrowLeft']) && direction.x !== dir) {
+    direction = { x: -dir, z: 0 };
+    rotation = { r: 0 };
+  } else if ((keys['d'] || keys['ArrowRight']) && direction.x !== -dir) {
+    direction = { x: dir, z: 0 };
+    rotation = { r: 0 };
   }
-  else if ((keys['s'] || keys['ArrowDown']) && direction.z !== -1) {
-    direction = { x: 0, z: 1 };
+}
+
+function createSegment(x, z, r, type = 'body') {
+  let geometry;
+  if (type === 'head' ) {
+    geometry = new THREE.BoxGeometry(1, 1, 1);
+  }else if(type === 'tail'){
+    geometry = new THREE.SphereGeometry(0.5);
+  } else {
+    geometry = new THREE.SphereGeometry(0.5);
   }
-  else if ((keys['a'] || keys['ArrowLeft']) && direction.x !== 1) {
-    direction = { x: -1, z: 0 };
-  }
-  else if ((keys['d'] || keys['ArrowRight']) && direction.x !== -1) {
-    direction = { x: 1, z: 0 };
+
+  const material = new THREE.MeshNormalMaterial({
+    color: '#3940ff',
+  });
+
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.set(x, 0.5, z);
+  mesh.castShadow = true;
+  mesh.rotation.z = Math.PI / 2;
+  mesh.rotation.y = r;
+
+  scene.add(mesh);
+  snakeMeshes.push(mesh);
+  return mesh;  
+}
+
+function initializeSnake() {
+  const segmentsToCreate = Math.round(1 / dir);
+
+  snake = [];
+  snakeMeshes.forEach(mesh => scene.remove(mesh));
+  snakeMeshes = [];
+
+  for (let i = 0; i < segmentsToCreate; i++) {
+    const segment = {
+      x: -i * dir,
+      z: 0,
+      r: 0
+    };
+
+    snake.push(segment);
+
+    if (i === 0) {
+      createSegment(segment.x, segment.z, segment.r, 'head');
+    } else if (i === segmentsToCreate - 1) {
+      createSegment(segment.x, segment.z, segment.r, 'tail');
+    } else {
+      createSegment(segment.x, segment.z, segment.r, 'body');
+    }
   }
 }
 
@@ -111,19 +148,54 @@ function updateMeshes() {
   snake.forEach((segment, index) => {
     if (!snakeMeshes[index]) return;
     snakeMeshes[index].position.set(segment.x, 0.5, segment.z);
+    snakeMeshes[index].rotation.set(0, segment.r, Math.PI / 2);
   });
 }
 
 export function growSnake() {
+  const segmentsToAdd = Math.round(1 / dir);
+
   const tail = snake[snake.length - 1];
-  snake.push({ ...tail });
-  createSegment(tail.x, tail.z);
+  const beforeTail = snake[snake.length - 2];
+
+  const dx = tail.x - beforeTail.x;
+  const dz = tail.z - beforeTail.z;
+
+  
+  const oldTailMesh = snakeMeshes.pop();
+  scene.remove(oldTailMesh);
+  const bodyMesh = createSegment(tail.x, tail.z, tail.r, 'body');
+
+  
+  snakeMeshes.push(bodyMesh);
+
+  for (let i = 1; i <= segmentsToAdd; i++) {
+    const newSegment = {
+      x: tail.x + dx * i,
+      z: tail.z + dz * i,
+      r: tail.r
+    };
+
+    snake.push(newSegment);
+
+    if (i === segmentsToAdd) {
+      createSegment(newSegment.x, newSegment.z, newSegment.r, 'tail');
+    } else {
+      createSegment(newSegment.x, newSegment.z, newSegment.r, 'body');
+    }
+  }
 }
 
 function checkSelfCollision() {
   const head = snake[0];
-  for (let i = 1; i < snake.length-1; i++) {
-    if (head.x === snake[i].x && head.z === snake[i].z) return true;
+  const epsilon = 0.001;
+  for (let i = 1; i < snake.length - 1; i++) {
+    if (
+      Math.abs(head.x - snake[i].x) < epsilon &&
+      Math.abs(head.z - snake[i].z) < epsilon
+    ) {
+      return true;
+    }
   }
   return false;
 }
@@ -137,13 +209,11 @@ function checkWallCollision(position) {
 
 function restartGame() {
   snakeMeshes.forEach(mesh => scene.remove(mesh));
-  snake = [{ x: 0, z: 0 }];
-  snakeMeshes = [];
-  direction = { x: 1, z: 0 };
+  initializeSnake();
+  direction = { x: dir, z: 0 };
   score = 0;
   scoreElement.textContent = score;
   gameOver = false;
-  createSegment(0, 0);
   spawnFruit();
   hideRestartModal();
 }
